@@ -37,6 +37,10 @@ export default function KyselyAdapter(kysely: Kysely<DB>): Adapter {
         .where("providerAccountId", "=", providerAccountId)
         .where("provider", "=", provider)
         .executeTakeFirst()
+
+      if (!account) {
+        return null
+      }
       const user =
         (await kysely
           .selectFrom("user")
@@ -65,6 +69,10 @@ export default function KyselyAdapter(kysely: Kysely<DB>): Adapter {
         .values({ ...account })
         .returningAll()
         .executeTakeFirst()
+
+      if (!pgDefault) {
+        return null
+      }
 
       pgDefault.expires_at = Number(pgDefault?.expires_at)
       return pgDefault
@@ -139,8 +147,5 @@ export default function KyselyAdapter(kysely: Kysely<DB>): Adapter {
 
       return VerificationToken ?? null
     },
-
-    //BUG these last two delete something as well
-    //BUG I think userID on account and session should be related to user
   }
 }

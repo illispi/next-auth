@@ -1,3 +1,4 @@
+import { TestOptions } from "@next-auth/adapter-test"
 import type { Kysely } from "kysely"
 import type { DB } from "../src/dbTypes"
 

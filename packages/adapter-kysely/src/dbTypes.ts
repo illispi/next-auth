@@ -27,7 +27,6 @@ export interface Session {
   sessionToken: string
   userId: string
   expires: Timestamp
-  user: string
 }
 
 export interface User {

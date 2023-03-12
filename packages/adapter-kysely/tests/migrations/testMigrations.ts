@@ -1,4 +1,4 @@
-import { Kysely, sql } from "kysely";
+import { Kysely, sql } from "kysely"
 
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
@@ -10,7 +10,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn("email", "text", (col) => col.unique())
     .addColumn("emailVerified", "timestamp")
     .addColumn("image", "text")
-    .execute();
+    .execute()
 
   await db.schema
     .createTable("account")
@@ -32,7 +32,7 @@ export async function up(db: Kysely<any>): Promise<void> {
       "uuid",
       (col) => col.references("user.id").onDelete("cascade").unique() //NOTE this should work alas this is child table
     )
-    .execute();
+    .execute()
 
   await db.schema
     .createTable("session")
@@ -46,23 +46,21 @@ export async function up(db: Kysely<any>): Promise<void> {
       "uuid",
       (col) => col.references("user.id").onDelete("cascade").unique() //NOTE this should work alas this is child table
     )
-    .execute();
+    .execute()
 
   await db.schema
     .createTable("VerificationToken")
     .addColumn("identifier", "text")
     .addColumn("token", "text", (col) => col.unique())
     .addColumn("expires", "timestamp")
-    .execute();
-
-  
+    .execute()
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
-  await db.schema.dropTable("account").execute();
-  await db.schema.dropTable("session").execute();
-  await db.schema.dropTable("VerificationToken").execute();
-  await db.schema.dropTable("user").execute();
+  await db.schema.dropTable("account").execute()
+  await db.schema.dropTable("session").execute()
+  await db.schema.dropTable("VerificationToken").execute()
+  await db.schema.dropTable("user").execute()
 }
 
 //NOTE if you added to column name_enum, you could spot them easily in zod schemas.
