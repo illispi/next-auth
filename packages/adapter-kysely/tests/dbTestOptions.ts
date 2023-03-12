@@ -1,4 +1,4 @@
-import type { Kysely } from "kysely";
+import type { Kysely } from "kysely"
 import type { DB } from "../src/dbTypes"
 
 export function dbHelper(db: Kysely<DB>): TestOptions["db"] {
@@ -6,9 +6,10 @@ export function dbHelper(db: Kysely<DB>): TestOptions["db"] {
     async user(id) {
       const user = await db
         .selectFrom("user")
-        .selectAll("user")
-        .where("user.id", "=", id);
-      return user ?? null;
+        .selectAll()
+        .where("user.id", "=", id)
+        .executeTakeFirst()
+      return user ?? null
     },
     async account({ providerAccountId, provider }) {
       const account = await db
@@ -16,16 +17,21 @@ export function dbHelper(db: Kysely<DB>): TestOptions["db"] {
         .selectAll()
         .where("providerAccountId", "=", providerAccountId)
         .where("provider", "=", provider)
-        .executeTakeFirst();
-      return account ?? null;
+        .executeTakeFirst()
+
+      if (account) {
+        account.expires_at = Number(account?.expires_at)
+        return account
+      }
+      return null
     },
     async session(sessionToken) {
       const session = await db
         .selectFrom("session")
         .selectAll("session")
         .where("sessionToken", "=", sessionToken)
-        .executeTakeFirst();
-      return session ?? null;
+        .executeTakeFirst()
+      return session ?? null
     },
     async verificationToken({ token, identifier }) {
       const verificationToken = await db
@@ -33,11 +39,11 @@ export function dbHelper(db: Kysely<DB>): TestOptions["db"] {
         .selectAll()
         .where("identifier", "=", identifier)
         .where("token", "=", token)
-        .executeTakeFirst();
-      if (!verificationToken) return null;
+        .executeTakeFirst()
+      if (!verificationToken) return null
       //NOTE see what the below old code does?
       //const { id: _, ...rest } = verificationToken;
-      return verificationToken;
+      return verificationToken
     },
-  };
+  }
 }

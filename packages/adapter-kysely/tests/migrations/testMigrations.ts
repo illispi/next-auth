@@ -17,20 +17,18 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn("id", "uuid", (col) =>
       col.primaryKey().defaultTo(sql`gen_random_uuid()`)
     )
-    .addColumn("userId", "text", (col) => col.notNull())
     .addColumn("type", "text", (col) => col.notNull())
     .addColumn("provider", "text", (col) => col.notNull())
     .addColumn("providerAccountId", "text", (col) => col.notNull())
     .addColumn("refresh_token", "text")
-    .addColumn("refresh_token_expires_in", "integer")
     .addColumn("access_token", "text")
-    .addColumn("expires_at", "integer")
+    .addColumn("expires_at", "int8")
     .addColumn("token_type", "text")
     .addColumn("scope", "text")
     .addColumn("id_token", "text")
     .addColumn("session_state", "text")
     .addColumn(
-      "user",
+      "userId",
       "uuid",
       (col) => col.references("user.id").onDelete("cascade").unique() //NOTE this should work alas this is child table
     )
@@ -42,10 +40,9 @@ export async function up(db: Kysely<any>): Promise<void> {
       col.primaryKey().defaultTo(sql`gen_random_uuid()`)
     )
     .addColumn("sessionToken", "text", (col) => col.unique().notNull())
-    .addColumn("userId", "text", (col) => col.notNull())
     .addColumn("expires", "timestamp", (col) => col.notNull())
     .addColumn(
-      "user",
+      "userId",
       "uuid",
       (col) => col.references("user.id").onDelete("cascade").unique() //NOTE this should work alas this is child table
     )

@@ -1,6 +1,7 @@
-import type { Kysely } from "kysely";
-import { Adapter } from "next-auth/adapters";
-import { DB } from "./dbTypes";
+import type { Kysely } from "kysely"
+import { Adapter } from "next-auth/adapters"
+import { version } from "punycode"
+import { DB } from "./dbTypes"
 
 /** @return { import("next-auth/adapters").Adapter } */
 export default function KyselyAdapter(kysely: Kysely<DB>): Adapter {
@@ -8,9 +9,9 @@ export default function KyselyAdapter(kysely: Kysely<DB>): Adapter {
     async createUser(user) {
       return await kysely
         .insertInto("user")
-        .values(user)
+        .values({ ...user })
         .returningAll()
-        .executeTakeFirst();
+        .executeTakeFirst()
     },
     async getUser(id) {
       return (
@@ -19,7 +20,7 @@ export default function KyselyAdapter(kysely: Kysely<DB>): Adapter {
           .selectAll()
           .where("id", "=", id)
           .executeTakeFirst()) ?? null
-      );
+      )
     },
     async getUserByEmail(email) {
       return (
@@ -28,7 +29,7 @@ export default function KyselyAdapter(kysely: Kysely<DB>): Adapter {
           .selectAll()
           .where("email", "=", email)
           .executeTakeFirst()) ?? null
-      );
+      )
     },
     async getUserByAccount({ providerAccountId, provider }) {
       const account = await kysely
@@ -36,79 +37,92 @@ export default function KyselyAdapter(kysely: Kysely<DB>): Adapter {
         .selectAll()
         .where("providerAccountId", "=", providerAccountId)
         .where("provider", "=", provider)
-        .executeTakeFirst();
+        .executeTakeFirst()
       const user =
         (await kysely
           .selectFrom("user")
           .selectAll()
-          .where("id", "=", account?.user)
-          .executeTakeFirst()) ?? null;
-      return user;
+          .where("id", "=", account?.userId)
+          .executeTakeFirst()) ?? null
+      return user
     },
     async updateUser(user) {
       return await kysely
         .updateTable("user")
+        .set({ ...user })
         .where("id", "=", user.id)
-        .executeTakeFirst();
+        .returningAll()
+        .executeTakeFirst()
     },
     async deleteUser(userId) {
       return await kysely
         .deleteFrom("user")
         .where("id", "=", userId)
-        .executeTakeFirst();
+        .executeTakeFirst()
     },
     async linkAccount(account) {
-      return await kysely
+      const pgDefault = await kysely
         .insertInto("account")
         .values({ ...account })
         .returningAll()
-        .executeTakeFirst();
+        .executeTakeFirst()
+
+      pgDefault.expires_at = Number(pgDefault?.expires_at)
+      return pgDefault
     },
     async unlinkAccount({ providerAccountId, provider }) {
       return await kysely
         .deleteFrom("account")
         .where("providerAccountId", "=", providerAccountId)
         .where("provider", "=", provider)
-        .executeTakeFirst();
+        .executeTakeFirst()
     },
     async createSession({ sessionToken, userId, expires }) {
       return await kysely
         .insertInto("session")
         .values({ userId, sessionToken, expires })
         .returningAll()
-        .executeTakeFirst();
+        .executeTakeFirst()
     },
     async getSessionAndUser(sessionToken) {
-      const session = await kysely
-        .selectFrom("session")
-        .selectAll("session")
-        .where("sessionToken", "=", sessionToken)
-        .executeTakeFirst();
-      const user = await kysely
-        .selectFrom("user")
-        .selectAll("user")
-        .where("id", "=", session?.userId)
-        .executeTakeFirst();
-      return { session, user };
+      const session =
+        (await kysely
+          .selectFrom("session")
+          .selectAll("session")
+          .where("sessionToken", "=", sessionToken)
+          .executeTakeFirst()) ?? null
+
+      if (!session) {
+        return null
+      }
+      const user =
+        (await kysely
+          .selectFrom("user")
+          .selectAll("user")
+          .where("id", "=", session?.userId)
+          .executeTakeFirst()) ?? null
+
+      return { session, user }
     },
-    async updateSession({ sessionToken }) {
+    async updateSession({ sessionToken, expires }) {
       return await kysely
         .updateTable("session")
+        .set({ sessionToken, expires })
         .where("sessionToken", "=", sessionToken)
-        .executeTakeFirst();
+        .executeTakeFirst()
     },
     async deleteSession(sessionToken) {
       return await kysely
         .deleteFrom("session")
         .where("sessionToken", "=", sessionToken)
-        .executeTakeFirst();
+        .executeTakeFirst()
     },
     async createVerificationToken({ identifier, expires, token }) {
       return await kysely
         .insertInto("VerificationToken")
         .values({ expires, identifier, token })
         .returningAll()
-        .executeTakeFirst();
+        .executeTakeFirst()
     },
     async useVerificationToken({ identifier, token }) {
       const VerificationToken = await kysely
@@ -116,10 +130,18 @@ export default function KyselyAdapter(kysely: Kysely<DB>): Adapter {
         .selectAll()
         .where("identifier", "=", identifier)
         .where("token", "=", token)
-        .executeTakeFirst();
+        .executeTakeFirst()
+
+      await kysely
+        .deleteFrom("VerificationToken")
+        .where("identifier", "=", identifier)
+        .where("token", "=", token)
+        .executeTakeFirst()
+
+      return VerificationToken ?? null
     },
 
     //BUG these last two delete something as well
     //BUG I think userID on account and session should be related to user
-  };
+  }
 }
