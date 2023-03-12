@@ -4,7 +4,7 @@ import type { DB } from "../src/dbTypes"
 
 export function dbHelper(db: Kysely<DB>): TestOptions["db"] {
   return {
-   async disconnect()  {
+    async disconnect() {
       await db.destroy()
     },
     async user(id) {
