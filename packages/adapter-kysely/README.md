@@ -22,7 +22,7 @@ Currently this works only on postgres
 
 ## Getting Started
 
-1. Install `next-auth` and `@next-auth/kysely-adapter` as well as `kysely` and driver for your database.
+1. Install `next-auth` and `@next-auth/kysely-adapter` as well as `kysely` and driver for your database (pg).
 
 ```js
 npm install next-auth @next-auth/kysely-adapter kysely
@@ -42,7 +42,7 @@ const dbKysely = new Kysely<DB>({
     pool: new Pool({
       host: "127.0.0.1",
       port: 5432,
-      //see rest of the option from pg driver docs
+      //see rest of the options from pg driver docs
     }),
   }),
 })
