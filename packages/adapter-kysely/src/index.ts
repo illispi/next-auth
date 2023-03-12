@@ -1,6 +1,5 @@
 import type { Kysely } from "kysely"
 import { Adapter } from "next-auth/adapters"
-import { version } from "punycode"
 import { DB } from "./dbTypes"
 
 /** @return { import("next-auth/adapters").Adapter } */
