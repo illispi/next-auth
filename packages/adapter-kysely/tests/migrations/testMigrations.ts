@@ -63,4 +63,3 @@ export async function down(db: Kysely<any>): Promise<void> {
   await db.schema.dropTable("user").execute()
 }
 
-//NOTE if you added to column name_enum, you could spot them easily in zod schemas.
